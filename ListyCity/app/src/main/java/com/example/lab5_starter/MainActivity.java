@@ -1,5 +1,6 @@
 package com.example.lab5_starter;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
@@ -31,7 +32,14 @@ public class MainActivity extends AppCompatActivity implements CityDialogFragmen
     private CollectionReference citiesRef;
 
 
+    private Button deleteCityButton;
 
+    private int selectedCityIndex = -1;
+
+
+
+
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,7 +58,8 @@ public class MainActivity extends AppCompatActivity implements CityDialogFragmen
             if (error != null) {
                 Log.e("Firestore", error.toString());
             }
-            if (value != null && !value.isEmpty()) {
+
+            if (value != null) {
                 cityArrayList.clear();
                 for (QueryDocumentSnapshot snapshot : value) {
                     String name = snapshot.getString("name");
@@ -66,6 +75,8 @@ public class MainActivity extends AppCompatActivity implements CityDialogFragmen
         // Set views
         addCityButton = findViewById(R.id.buttonAddCity);
         cityListView = findViewById(R.id.listviewCities);
+        deleteCityButton = findViewById(R.id.buttonDeleteCity);
+
 
         // create city array
         cityArrayList = new ArrayList<>();
@@ -81,9 +92,21 @@ public class MainActivity extends AppCompatActivity implements CityDialogFragmen
         });
 
         cityListView.setOnItemClickListener((adapterView, view, i, l) -> {
-            City city = cityArrayAdapter.getItem(i);
-            CityDialogFragment cityDialogFragment = CityDialogFragment.newInstance(city);
-            cityDialogFragment.show(getSupportFragmentManager(),"City Details");
+            selectedCityIndex = i;
+        });
+
+        deleteCityButton.setOnClickListener(view -> {
+            if (selectedCityIndex == -1) {
+                return;
+            }
+
+            City city = cityArrayAdapter.getItem(selectedCityIndex);
+            if (city == null) {
+                return;
+            }
+
+            citiesRef.document(city.getName()).delete();
+            selectedCityIndex = -1;
         });
 
     }
